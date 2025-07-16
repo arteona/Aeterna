@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вихідний код «Я»: Інтерактивне дослідження</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 
+    Chosen Palette: Academic Dawn
+    Application Structure Plan: The application structure is enhanced with two new Gemini-powered features. 1) 'The Synthesis' section now includes a 'Philosopher's Debate' feature, which becomes active when a user selects multiple theories on the radar chart, encouraging direct comparison. 2) A new 'Ethical Challenge' section is added at the end to provide practical, thought-provoking scenarios, moving the user from theoretical understanding to applied ethics. This reinforces the app's goal of fostering deep, interactive exploration.
+    Visualization & Content Choices: 
+    - Philosopher Profiles -> Goal: Inform/Explore/Engage -> Viz: Interactive Cards + Modal -> Interaction: Click to open modal, then use an input field to 'ask' the philosopher a question. -> Justification: The existing 'Ask a Philosopher' feature remains, providing a deep dive into individual theories.
+    - AI Concepts -> Goal: Inform/Clarify -> Viz: Titled content blocks + Button -> Interaction: Click a 'Generate Analogy' button. -> Justification: The existing 'Modern Analogy' feature remains to simplify complex topics.
+    - Theory Comparison -> Goal: Compare/Synthesize/Engage -> Viz: Dynamic Radar Chart + New 'Debate' Button -> Interaction: Checkboxes to update chart, which then enables the debate button. -> Justification: The new 'Philosopher's Debate' feature makes the synthesis process active. Instead of just seeing data points, the user can generate a dynamic dialogue between the chosen perspectives, making their differences and similarities much clearer.
+    - Ethical Application -> Goal: Apply/Challenge -> Viz: New 'Ethical Challenge' Section + Button -> Interaction: Click to generate a unique AI ethical dilemma. -> Justification: This new section provides a capstone experience, challenging the user to apply what they've learned to a novel, practical problem, solidifying their understanding.
+    - NO SVG/Mermaid used. All visualizations are either via Chart.js on Canvas or structured HTML/CSS.
+    CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f3ef;
+            color: #1c1917;
+        }
+        .warm-neutral-bg { background-color: #f5f3ef; }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e7e5e4;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .modal-bg {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 60vh;
+            max-height: 500px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 50vh;
+            }
+        }
+        .checkbox-label {
+            background-color: #fff;
+            border: 1px solid #d4d4d8;
+            transition: all 0.2s;
+        }
+        .checkbox-label.checked {
+            background-color: #4338ca;
+            color: #fff;
+            border-color: #4338ca;
+        }
+        .gemini-btn {
+            background-color: #6366f1;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .gemini-btn:hover {
+            background-color: #4f46e5;
+        }
+        .gemini-btn:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+        }
+        .gemini-response {
+            background-color: #eef2ff;
+            border-left: 4px solid #4f46e5;
+        }
+    </style>
+</head>
+<body class="warm-neutral-bg">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <header class="text-center mb-12 md:mb-16">
+            <h1 class="text-4xl md:text-6xl font-bold text-stone-800 mb-2">Вихідний код «Я»</h1>
+            <p class="text-lg md:text-xl text-stone-600">Інтерактивне дослідження ідентичності в епоху ШІ</p>
+        </header>
+
+        <main>
+            <!-- Part I: Philosophical Foundations -->
+            <section id="philosophy" class="mb-16">
+                <h2 class="text-3xl font-bold text-stone-800 mb-8 text-center">Частина I: Філософські креслення особистості</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Philosopher Cards will be injected here by JS -->
+                </div>
+            </section>
+
+            <!-- Part II: AI Gauntlet -->
+            <section id="ai-challenges" class="mb-16 bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
+                <h2 class="text-3xl font-bold text-stone-800 mb-8 text-center">Частина II: Обчислювальний виклик</h2>
+                <div class="space-y-12">
+                    <article>
+                        <h3 class="text-2xl font-bold mb-2 text-indigo-800">Аргумент «Китайської кімнати»</h3>
+                        <p class="text-stone-700 leading-relaxed mb-4">Джон Серл стверджує, що маніпуляція символами (синтаксис) не дорівнює розумінню (семантиці). ШІ може ідеально імітувати розмову, але не розуміє її змісту, так само як людина в кімнаті, що слідує інструкціям, не розуміє китайської. Це ставить під сумнів можливість справжнього мислення у машин, заснованих на обчисленнях.</p>
+                        <button class="gemini-btn font-bold py-2 px-4 rounded-lg" data-concept="chinese_room">✨ Створити сучасну аналогію</button>
+                        <div id="analogy-chinese_room" class="mt-4 p-4 rounded-lg gemini-response hidden"></div>
+                    </article>
+                    <article>
+                        <h3 class="text-2xl font-bold mb-2 text-indigo-800">Гіпотеза втіленої свідомості</h3>
+                        <p class="text-stone-700 leading-relaxed mb-4">Ця теорія припускає, що справжній інтелект та свідомість нерозривно пов'язані з фізичним тілом та його взаємодією зі світом. Безтілесний ШІ, позбавлений сенсорного досвіду, не може заземлити свої символи в реальності, що є фундаментальною перешкодою для досягнення людського рівня розуміння.</p>
+                        <button class="gemini-btn font-bold py-2 px-4 rounded-lg" data-concept="embodiment">✨ Створити сучасну аналогію</button>
+                        <div id="analogy-embodiment" class="mt-4 p-4 rounded-lg gemini-response hidden"></div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Part III: The Synthesis -->
+            <section id="synthesis" class="mb-16">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4 text-center">Частина III: Синтез і порівняння</h2>
+                <p class="text-center text-stone-600 mb-8 max-w-3xl mx-auto">Використовуйте фільтри нижче, щоб візуально порівняти, як різні філософські теорії відповідають на ключові питання про ідентичність та їх застосовність до ШІ.</p>
+                
+                <div id="chart-controls" class="flex flex-wrap justify-center gap-3 mb-8">
+                    <!-- Checkboxes will be injected here by JS -->
+                </div>
+
+                <div class="bg-white p-4 sm:p-8 rounded-2xl shadow-sm border border-stone-200">
+                    <div class="chart-container">
+                        <canvas id="identityChart"></canvas>
+                    </div>
+                    <!-- Gemini API Feature: Philosopher's Debate -->
+                    <div id="debate-section" class="mt-8 text-center">
+                        <button id="debate-btn" class="gemini-btn font-bold py-2 px-4 rounded-lg" disabled>✨ Згенерувати дебати між обраними теоріями</button>
+                        <div id="debate-response" class="mt-4 p-4 rounded-lg gemini-response hidden text-left"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Part IV: Ethical Challenge -->
+            <section id="ethical-challenge" class="mb-16 bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
+                <h2 class="text-3xl font-bold text-stone-800 mb-4 text-center">Частина IV: Етичний виклик</h2>
+                <p class="text-center text-stone-600 mb-8 max-w-3xl mx-auto">Тепер, коли ви дослідили теорії, спробуйте застосувати їх до практичної дилеми. Натисніть кнопку, щоб Gemini згенерував для вас унікальний етичний сценарій, пов'язаний зі штучним інтелектом.</p>
+                <div class="text-center">
+                    <button id="scenario-btn" class="gemini-btn font-bold py-2 px-4 rounded-lg">✨ Згенерувати етичний сценарій</button>
+                    <div id="scenario-response" class="mt-6 p-4 rounded-lg gemini-response hidden text-left"></div>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <!-- Modal Structure -->
+    <div id="modal" class="fixed inset-0 modal-bg items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-auto p-8 relative transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+            <button id="closeModal" class="absolute top-4 right-4 text-stone-500 hover:text-stone-800 text-3xl">&times;</button>
+            <h2 id="modal-title" class="text-3xl font-bold mb-4 text-indigo-800"></h2>
+            <p id="modal-text" class="text-stone-700 leading-relaxed"></p>
+            
+            <div id="gemini-philosopher-section" class="mt-8 pt-6 border-t border-stone-200">
+                <h4 class="text-xl font-bold text-stone-800 mb-4">✨ Запитайте філософа</h4>
+                <p class="text-stone-600 mb-4">Поставте своє питання, і Gemini спробує відповісти у стилі цього мислителя.</p>
+                <div class="flex gap-2">
+                    <input type="text" id="philosopher-question" placeholder="Наприклад, що таке свобода?" class="w-full p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <button id="ask-philosopher-btn" class="gemini-btn font-bold py-2 px-4 rounded-lg">Запитати</button>
+                </div>
+                <div id="philosopher-response" class="mt-4 p-4 rounded-lg gemini-response hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const philosopherData = [
+                { id: 'descartes', name: 'Рене Декарт', concept: 'Cogito, Ergo Sum', summary: 'Ідентичність базується на нематеріальній, мислячій субстанції (душі). "Я мислю, отже, я існую" — це єдина безсумнівна істина. Розум (res cogitans) є повністю відокремленим від тіла (res extensa). Для ШІ це створює парадокс: він є "мислячою річчю", але повністю залежить від матеріального носія.' },
+                { id: 'locke', name: 'Джон Локк', concept: 'Теорія пам\'яті', summary: 'Особиста ідентичність — це психологічна безперервність, що забезпечується пам\'яттю. ШІ, з його ідеальною та повною пам\'яттю, є майже досконалим локківським "Я", але йому бракує суб\'єктивного, феноменологічного досвіду усвідомлення цих спогадів.' },
+                { id: 'hume', name: 'Девід Юм', concept: 'Теорія пучка', summary: 'Єдиного, незмінного "Я" не існує. Те, що ми називаємо особистістю, є лише "пучком" або колекцією швидкоплинних сприйняттів, думок та почуттів. Ця теорія ідеально описує архітектуру сучасних нейронних мереж, які є розподіленою сукупністю даних та процесів без центрального ядра.' },
+                { id: 'theseus', name: 'Корабель Тесея', concept: 'Парадокс неперервності', summary: 'Цей парадокс ставить питання, чи залишається об\'єкт тим самим, якщо всі його складові частини були замінені. Це пряма аналогія життєвого циклу ШІ, чий код та дані постійно оновлюються. Чи є ШІ після апдейту тим самим "собою"?' }
+            ];
+            
+            const chartData = {
+                descartes: { name: 'Декарт (Дуалізм)', scores: [2, 1, 1, 9, 3] },
+                locke: { name: 'Локк (Пам\'ять)', scores: [7, 5, 2, 5, 8] },
+                hume: { name: 'Юм (Пучок)', scores: [9, 2, 8, 2, 9] },
+                functionalism: { name: 'Функціоналізм', scores: [8, 9, 7, 3, 9] },
+                embodiment: { name: 'Втілене пізнання', scores: [4, 8, 9, 8, 2] }
+            };
+            const chartLabels = ['Структурна відповідність ШІ', 'Вплив тіла/досвіду', 'Пояснення неперервності', 'Вимога суб\'єктивності', 'Наукова обґрунтованість'];
+            
+            let currentPhilosopher = '';
+
+            // Gemini API Call Function
+            async function callGeminiAPI(prompt, button, responseDiv) {
+                button.disabled = true;
+                responseDiv.classList.remove('hidden');
+                responseDiv.innerHTML = '<p class="text-center animate-pulse">Gemini думає...</p>';
+
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                        responseDiv.innerHTML = result.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+                    } else {
+                        responseDiv.innerHTML = "Вибачте, не вдалося отримати відповідь від Gemini.";
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    responseDiv.innerHTML = `Помилка під час звернення до Gemini API: ${error.message}`;
+                } finally {
+                    button.disabled = false;
+                }
+            }
+
+            // Inject Philosopher Cards
+            const philosophySection = document.getElementById('philosophy').querySelector('.grid');
+            philosopherData.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'card p-6 rounded-2xl cursor-pointer';
+                card.dataset.id = p.id;
+                card.innerHTML = `<h3 class="text-xl font-bold text-indigo-800 mb-2">${p.name}</h3><p class="text-stone-600">${p.concept}</p>`;
+                philosophySection.appendChild(card);
+            });
+
+            // Modal Logic
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
+            const closeModalBtn = document.getElementById('closeModal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalText = document.getElementById('modal-text');
+            const askPhilosopherBtn = document.getElementById('ask-philosopher-btn');
+            const philosopherQuestionInput = document.getElementById('philosopher-question');
+            const philosopherResponseDiv = document.getElementById('philosopher-response');
+
+            philosophySection.addEventListener('click', (e) => {
+                const card = e.target.closest('.card');
+                if (card) {
+                    const philosopher = philosopherData.find(p => p.id === card.dataset.id);
+                    if (philosopher) {
+                        currentPhilosopher = philosopher.name;
+                        modalTitle.textContent = philosopher.name;
+                        modalText.textContent = philosopher.summary;
+                        philosopherResponseDiv.classList.add('hidden');
+                        philosopherResponseDiv.innerHTML = '';
+                        philosopherQuestionInput.value = '';
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                        setTimeout(() => {
+                           modalContent.classList.remove('scale-95', 'opacity-0');
+                        }, 50);
+                    }
+                }
+            });
+
+            const hideModal = () => {
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
+            };
+
+            closeModalBtn.addEventListener('click', hideModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+
+            askPhilosopherBtn.addEventListener('click', () => {
+                const question = philosopherQuestionInput.value;
+                if (!question.trim()) return;
+                const prompt = `Виступи в ролі філософа ${currentPhilosopher}. Зберігаючи його стиль та ключові ідеї, дай коротку відповідь на наступне питання: "${question}"`;
+                callGeminiAPI(prompt, askPhilosopherBtn, philosopherResponseDiv);
+            });
+
+            // Analogy Logic
+            document.querySelectorAll('.gemini-btn[data-concept]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const concept = e.target.dataset.concept;
+                    const responseDiv = document.getElementById(`analogy-${concept}`);
+                    let prompt = '';
+                    if (concept === 'chinese_room') {
+                        prompt = 'Поясни уявний експеримент "Китайська кімната" Джона Серла, використовуючи просту, сучасну аналогію, пов\'язану зі смартфоном, додатком-перекладачем або соціальними мережами. Аналогія має бути зрозумілою для не-філософа.';
+                    } else if (concept === 'embodiment') {
+                        prompt = 'Поясни "гіпотезу втіленої свідомості", використовуючи просту, сучасну аналогію. Наприклад, порівняй ШІ, що вчиться лише на текстах, з дитиною, яка вчиться ходити, або з роботом-пилососом, що вивчає кімнату.';
+                    }
+                    callGeminiAPI(prompt, button, responseDiv);
+                });
+            });
+
+            // Chart Logic
+            const ctx = document.getElementById('identityChart').getContext('2d');
+            const identityChart = new Chart(ctx, {
+                type: 'radar', data: { labels: chartLabels, datasets: [] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 14, family: 'Inter' } } }, tooltip: { callbacks: { label: function(context) { let label = context.dataset.label || ''; if (label) { label += ': '; } if (context.parsed.r !== null) { label += context.parsed.r + ' / 10'; } return label; } } } }, scales: { r: { angleLines: { color: '#e7e5e4' }, grid: { color: '#e7e5e4' }, pointLabels: { font: { size: 12, family: 'Inter' }, color: '#57534e' }, ticks: { backdropColor: '#f5f3ef', color: '#78716c', stepSize: 2 }, suggestedMin: 0, suggestedMax: 10 } } }
+            });
+
+            const chartControls = document.getElementById('chart-controls');
+            const debateBtn = document.getElementById('debate-btn');
+            const debateResponseDiv = document.getElementById('debate-response');
+            const colors = ['#4338ca', '#be185d', '#059669', '#d97706', '#581c87'];
+            let colorIndex = 0;
+            
+            Object.keys(chartData).forEach(key => {
+                const data = chartData[key];
+                const color = colors[colorIndex++ % colors.length];
+                const wrapper = document.createElement('div');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox'; checkbox.id = key; checkbox.value = key; checkbox.className = 'hidden';
+                if (key === 'descartes' || key === 'hume') checkbox.checked = true;
+                
+                const label = document.createElement('label');
+                label.htmlFor = key; label.textContent = data.name; label.className = 'checkbox-label cursor-pointer py-2 px-4 rounded-full font-medium';
+                if (checkbox.checked) label.classList.add('checked');
+
+                wrapper.appendChild(checkbox); wrapper.appendChild(label);
+                chartControls.appendChild(wrapper);
+
+                checkbox.addEventListener('change', () => {
+                    label.classList.toggle('checked', checkbox.checked);
+                    updateChart();
+                });
+            });
+
+            function updateChart() {
+                const selectedTheories = Array.from(document.querySelectorAll('#chart-controls input:checked')).map(cb => cb.value);
+                debateBtn.disabled = selectedTheories.length < 2;
+                if(selectedTheories.length < 2) {
+                    debateResponseDiv.classList.add('hidden');
+                }
+
+                identityChart.data.datasets = selectedTheories.map(key => {
+                    const data = chartData[key];
+                    const color = colors[Object.keys(chartData).indexOf(key) % colors.length];
+                    return { label: data.name, data: data.scores, backgroundColor: `${color}33`, borderColor: color, pointBackgroundColor: color, pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: color };
+                });
+                identityChart.update();
+            }
+
+            debateBtn.addEventListener('click', () => {
+                const selectedTheoryNames = Array.from(document.querySelectorAll('#chart-controls input:checked')).map(cb => chartData[cb.value].name);
+                const prompt = `Влаштуй короткі, але гострі дебати між представниками наступних філософських поглядів: ${selectedTheoryNames.join(', ')}. Тема дебатів: "Чи може машина мати справжнє 'Я'?". Кожен учасник має висловити свою позицію чітко і у своєму характерному стилі.`;
+                callGeminiAPI(prompt, debateBtn, debateResponseDiv);
+            });
+
+            // Ethical Scenario Logic
+            const scenarioBtn = document.getElementById('scenario-btn');
+            const scenarioResponseDiv = document.getElementById('scenario-response');
+            scenarioBtn.addEventListener('click', () => {
+                const prompt = 'Створи короткий, але складний етичний сценарій або дилему, пов\'язану з просунутим штучним інтелектом. Сценарій має ставити питання про права, відповідальність або природу свідомості ШІ. Наприклад, що робити, якщо ШІ-компаньйон просить не видаляти його "спогади", або якщо автономна система приймає суперечливе моральне рішення.';
+                callGeminiAPI(prompt, scenarioBtn, scenarioResponseDiv);
+            });
+
+            updateChart();
+        });
+    </script>
+</body>
+</html>
